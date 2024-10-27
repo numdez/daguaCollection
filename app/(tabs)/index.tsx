@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-chart-kit';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -58,115 +58,110 @@ export default function HomeScreen() {
   const volumeData = data.map((item) => item.currentVolume);
   const temperatureData = data.map((item) => item.temperature);
   const purityData = data.map((item) => item.purity);
+  
+  // Formata a hora para ser exibida na HomeScreen
+  const formattedTimestamps = data.map((item) => new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
 
   return (
-    <ScrollView style={styles.container}>
-      <ThemedText type="title" style={styles.headerText}>
-        Dados Recentes da Caixa d'Água
-      </ThemedText>
+    <ThemedView style={styles.container}>
+      <ThemedText type="title">Dados Recentes da Caixa d'Água</ThemedText>
 
-      {/* Gráfico de Nível da Água e Volume Atual lado a lado */}
-      <View style={styles.rowContainer}>
-        <View style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>Nível da Água</ThemedText>
-          <LineChart
-            data={{
-              labels: data.map((item) => item.timestamp),
-              datasets: [{ data: levelData }],
-            }}
-            width={160} // Ajuste a largura
-            height={220}
-            chartConfig={{
-              backgroundColor: '#ffffff',
-              backgroundGradientFrom: '#e0f7fa',
-              backgroundGradientTo: '#e0f7fa',
-              color: (opacity = 1) => `rgba(0, 188, 212, ${opacity})`, // Azul claro
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-            }}
-            style={styles.chart}
-          />
-        </View>
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText style={styles.chartTitle}>Nível da Água</ThemedText>
+        <LineChart
+          data={{
+            labels: formattedTimestamps,
+            datasets: [{ data: levelData }],
+          }}
+          width={320}
+          height={220}
+          chartConfig={{
+            backgroundColor: '#ffffff',
+            backgroundGradientFrom: '#ffffff',
+            backgroundGradientTo: '#ffffff',
+            color: (opacity = 1) => `rgba(0, 102, 204, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+          }}
+          style={styles.chart}
+        />
+      </ThemedView>
 
-        <View style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>Volume Atual</ThemedText>
-          <BarChart
-            data={{
-              labels: ['Volume'],
-              datasets: [
-                {
-                  data: [volumeData[volumeData.length - 1], data[0].totalVolume],
-                },
-              ],
-            }}
-            width={160} // Ajuste a largura
-            height={220}
-            chartConfig={{
-              backgroundColor: '#ffffff',
-              backgroundGradientFrom: '#e0f7fa',
-              backgroundGradientTo: '#e0f7fa',
-              color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`, // Verde
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText style={styles.chartTitle}>Volume Atual</ThemedText>
+        <BarChart
+          data={{
+            labels: ['Volume'],
+            datasets: [
+              {
+                data: [volumeData[volumeData.length - 1], data[0].totalVolume],
               },
-            }}
-            style={styles.chart}
-          />
-        </View>
-      </View>
+            ],
+          }}
+          width={320}
+          height={220}
+          chartConfig={{
+            backgroundColor: '#ffffff',
+            backgroundGradientFrom: '#ffffff',
+            backgroundGradientTo: '#ffffff',
+            color: (opacity = 1) => `rgba(255, 99, 132, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+          }}
+          style={styles.chart}
+        />
+      </ThemedView>
 
-      {/* Gráfico de Temperatura e Pureza da Água lado a lado */}
-      <View style={styles.rowContainer}>
-        <View style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>Temperatura</ThemedText>
-          <PieChart
-            data={[
-              { name: 'Temperatura', value: temperatureData[temperatureData.length - 1], color: '#ffcc00', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-              { name: 'Outros', value: 100 - temperatureData[temperatureData.length - 1], color: '#f1f1f1', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-            ]}
-            width={160} // Ajuste a largura
-            height={220}
-            chartConfig={{
-              backgroundColor: '#ffffff',
-              backgroundGradientFrom: '#e0f7fa',
-              backgroundGradientTo: '#e0f7fa',
-              color: (opacity = 1) => `rgba(255, 152, 0, ${opacity})`, // Laranja
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-            }}
-            style={styles.chart}
-          />
-        </View>
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText style={styles.chartTitle}>Temperatura</ThemedText>
+        <PieChart
+          data={[
+            { name: 'Temperatura', value: temperatureData[temperatureData.length - 1], color: '#ffcc00', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+            { name: 'Outros', value: 100 - temperatureData[temperatureData.length - 1], color: '#f1f1f1', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+          ]}
+          width={320}
+          height={220}
+          chartConfig={{
+            backgroundColor: '#ffffff',
+            backgroundGradientFrom: '#ffffff',
+            backgroundGradientTo: '#ffffff',
+            color: (opacity = 1) => `rgba(0, 153, 51, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+          }}
+          style={styles.chart}
+        />
+      </ThemedView>
 
-        <View style={styles.chartContainer}>
-          <ThemedText style={styles.chartTitle}>Pureza da Água</ThemedText>
-          <LineChart
-            data={{
-              labels: data.map((item) => item.timestamp),
-              datasets: [{ data: purityData }],
-            }}
-            width={160} // Ajuste a largura
-            height={220}
-            chartConfig={{
-              backgroundColor: '#ffffff',
-              backgroundGradientFrom: '#e0f7fa',
-              backgroundGradientTo: '#e0f7fa',
-              color: (opacity = 1) => `rgba(255, 87, 34, ${opacity})`, // Vermelho
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-            }}
-            style={styles.chart}
-          />
-        </View>
-      </View>
-    </ScrollView>
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText style={styles.chartTitle}>Pureza da Água</ThemedText>
+        <LineChart
+          data={{
+            labels: formattedTimestamps,
+            datasets: [{ data: purityData }],
+          }}
+          width={320}
+          height={220}
+          chartConfig={{
+            backgroundColor: '#ffffff',
+            backgroundGradientFrom: '#ffffff',
+            backgroundGradientTo: '#ffffff',
+            color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+          }}
+          style={styles.chart}
+        />
+      </ThemedView>
+    </ThemedView>
   );
 }
 
@@ -174,43 +169,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5', // Cor de fundo clara para um visual mais moderno
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  rowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
   chartContainer: {
-    backgroundColor: '#ffffff', // Cor de fundo dos gráficos
-    borderRadius: 16,
-    padding: 16, // Preenchimento interno para os gráficos
-    shadowColor: '#000', // Sombra para adicionar profundidade
-    shadowOffset: { width: 0, height: 2 }, // Offset da sombra
-    shadowOpacity: 0.2, // Opacidade da sombra
-    shadowRadius: 4, // Raio da sombra
-    elevation: 2, // Elevation para Android
-    flex: 1, // Para que os gráficos ocupem a mesma largura
-    marginHorizontal: 5, // Margem horizontal entre gráficos
+    marginBottom: 20,
   },
   chartTitle: {
     marginVertical: 10,
     fontSize: 18,
-    fontWeight: 'bold', // Destacar o título do gráfico
   },
   chart: {
     marginVertical: 8,
     borderRadius: 16,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
   },
 });

@@ -65,6 +65,9 @@ export default function HistoryScreen() {
   const avgLevel = calculateAverage(levelData).toFixed(2) || 0;
   const avgTemperature = calculateAverage(temperatureData).toFixed(2) || 0;
 
+  // Formata a data para ser exibida na HistoryScreen
+  const formattedTimestamps = filteredData.map(item => new Date(item.timestamp).toLocaleDateString());
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ThemedView style={styles.titleContainer}>
@@ -82,7 +85,7 @@ export default function HistoryScreen() {
       </ThemedText>
       <LineChart
         data={{
-          labels: filteredData.map(item => new Date(item.timestamp).toLocaleDateString()),
+          labels: formattedTimestamps,
           datasets: [{ data: levelData }],
         }}
         width={screenWidth - 40}
@@ -106,7 +109,7 @@ export default function HistoryScreen() {
       </ThemedText>
       <LineChart
         data={{
-          labels: filteredData.map(item => new Date(item.timestamp).toLocaleDateString()),
+          labels: formattedTimestamps,
           datasets: [{ data: temperatureData }],
         }}
         width={screenWidth - 40}
