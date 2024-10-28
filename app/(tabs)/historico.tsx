@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Dimensions, ScrollView, View, Button } from 'react-native';
+import { StyleSheet, Dimensions, ScrollView, View, TouchableOpacity, Text } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -61,98 +61,124 @@ export default function HistoryScreen() {
   const filteredData = getFilteredData(data, filter);
   const levelData = filteredData.map(item => item.level);
   const temperatureData = filteredData.map(item => item.temperature);
-  
+
   const avgLevel = calculateAverage(levelData).toFixed(2) || 0;
   const avgTemperature = calculateAverage(temperatureData).toFixed(2) || 0;
 
-  // Formata a data para ser exibida na HistoryScreen
   const formattedTimestamps = filteredData.map(item => new Date(item.timestamp).toLocaleDateString());
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Histórico de Dados</ThemedText>
-      </ThemedView>
+      <ThemedText type="title" style={styles.title}>
+        Histórico de Dados
+      </ThemedText>
 
       <View style={styles.buttonContainer}>
-        <Button title="Últimos Dias" onPress={() => setFilter('day')} />
-        <Button title="Últimas Semanas" onPress={() => setFilter('week')} />
-        <Button title="Últimos Meses" onPress={() => setFilter('month')} />
+        <TouchableOpacity style={[styles.filterButton, filter === 'day' && styles.activeFilter]} onPress={() => setFilter('day')}>
+          <Text style={styles.buttonText}>Últimos Dias</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.filterButton, filter === 'week' && styles.activeFilter]} onPress={() => setFilter('week')}>
+          <Text style={styles.buttonText}>Últimas Semanas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.filterButton, filter === 'month' && styles.activeFilter]} onPress={() => setFilter('month')}>
+          <Text style={styles.buttonText}>Últimos Meses</Text>
+        </TouchableOpacity>
       </View>
-
-      <ThemedText type="subtitle" style={styles.chartTitle}>
-        Histórico do Nível da Água (Média: {avgLevel}%)
-      </ThemedText>
-      <LineChart
-        data={{
-          labels: formattedTimestamps,
-          datasets: [{ data: levelData }],
-        }}
-        width={screenWidth - 40}
-        height={220}
-        yAxisSuffix="%"
-        chartConfig={{
-          backgroundColor: '#ffffff',
-          backgroundGradientFrom: '#ffffff',
-          backgroundGradientTo: '#ffffff',
-          color: (opacity = 1) => `rgba(0, 102, 204, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-        }}
-        style={styles.chart}
-      />
-
-      <ThemedText type="subtitle" style={styles.chartTitle}>
-        Histórico da Temperatura (Média: {avgTemperature}°C)
-      </ThemedText>
-      <LineChart
-        data={{
-          labels: formattedTimestamps,
-          datasets: [{ data: temperatureData }],
-        }}
-        width={screenWidth - 40}
-        height={220}
-        yAxisSuffix="°C"
-        chartConfig={{
-          backgroundColor: '#ffffff',
-          backgroundGradientFrom: '#ffffff',
-          backgroundGradientTo: '#ffffff',
-          color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-        }}
-        style={styles.chart}
-      />
+      
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText type="subtitle" style={styles.chartTitle}>
+          Histórico do Nível da Água (Média: {avgLevel}%)
+        </ThemedText>
+        <LineChart
+          data={{
+            labels: formattedTimestamps,
+            datasets: [{ data: levelData }],
+          }}
+          width={screenWidth - 80}
+          height={220}
+          yAxisSuffix="%"
+          chartConfig={chartConfigWaterLevel}
+          style={styles.chart}
+        />
+      </ThemedView>
+        
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText type="subtitle" style={styles.chartTitle}>
+          Histórico da Temperatura (Média: {avgTemperature}°C)
+        </ThemedText>
+        <LineChart
+          data={{
+            labels: formattedTimestamps,
+            datasets: [{ data: temperatureData }],
+          }}
+          width={screenWidth - 80}
+          height={220}
+          yAxisSuffix="°C"
+          chartConfig={chartConfigTemperature}
+          style={styles.chart}
+        />
+      </ThemedView>
     </ScrollView>
   );
 }
 
+const chartConfigWaterLevel = {
+  backgroundColor: '#E6F7FF',
+  backgroundGradientFrom: '#E6F7FF',
+  backgroundGradientTo: '#B3E0FF',
+  color: (opacity = 1) => `rgba(0, 102, 204, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  style: {
+    borderRadius: 16,
+  },
+};
+
+const chartConfigTemperature = {
+  backgroundColor: '#FFE0CC',
+  backgroundGradientFrom: '#FFE0CC',
+  backgroundGradientTo: '#FFB399',
+  color: (opacity = 1) => `rgba(255, 102, 51, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  style: {
+    borderRadius: 16,
+  },
+};
+
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    alignItems: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    backgroundColor: '#e0f7fa',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  title: {
+    fontSize: 24,
+    color: '#0077be',
+    textAlign: 'center',
     marginBottom: 20,
   },
+  chartContainer: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
   chartTitle: {
-    marginTop: 20,
-    marginBottom: 10,
     fontSize: 18,
+    marginBottom: 10,
+    color: '#0077be',
+    textAlign: 'center',
   },
   chart: {
-    marginVertical: 8,
     borderRadius: 16,
   },
   buttonContainer: {
@@ -160,5 +186,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginVertical: 20,
     width: '100%',
+  },
+  filterButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#B3E0FF',
+    marginHorizontal: 5,
+  },
+  activeFilter: {
+    backgroundColor: '#007ACC',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
   },
 });

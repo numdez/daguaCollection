@@ -1,21 +1,33 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { BarChart, PieChart, LineChart } from 'react-native-chart-kit';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, View, Dimensions, ScrollView } from 'react-native';
+import { PieChart, BarChart, LineChart } from 'react-native-chart-kit';
 import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const screenWidth = Dimensions.get('window').width;
 const DATA_KEY = 'waterData';
 
 const fetchData = async () => {
   try {
     const jsonValue = await AsyncStorage.getItem(DATA_KEY);
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
+    return jsonValue ? JSON.parse(jsonValue) : null;
   } catch (e) {
     console.error(e);
     return null;
   }
 };
+
+const generateFakeData = () => [
+  {
+    timestamp: new Date().toISOString(),
+    level: 75,  // Nível em porcentagem
+    volume: 750,  // Volume atual
+    totalVolume: 1000,
+    temperature: 22,  // Temperatura em °C
+    purity: 0,  // Pureza em porcentagem
+  },
+];
 
 export default function HomeScreen() {
   const [data, setData] = React.useState(null);
@@ -23,28 +35,10 @@ export default function HomeScreen() {
   React.useEffect(() => {
     const loadData = async () => {
       const waterData = await fetchData();
-      if (!waterData || waterData.length === 0) {
-        setData(generateFakeData());
-      } else {
-        setData(waterData);
-      }
+      setData(waterData || generateFakeData());
     };
-
     loadData();
   }, []);
-
-  const generateFakeData = () => {
-    return [
-      {
-        timestamp: new Date().toISOString(),
-        level: 0,
-        currentVolume: 0,
-        totalVolume: 1000,
-        temperature: 0,
-        purity: 0,
-      },
-    ];
-  };
 
   if (!data) {
     return (
@@ -54,87 +48,58 @@ export default function HomeScreen() {
     );
   }
 
-  const levelData = data.map((item) => item.level);
-  const volumeData = data.map((item) => item.currentVolume);
-  const temperatureData = data.map((item) => item.temperature);
-  const purityData = data.map((item) => item.purity);
-  
-  // Formata a hora para ser exibida na HomeScreen
-  const formattedTimestamps = data.map((item) => new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+  const latestData = data[data.length - 1];
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title">Dados Recentes da Caixa d'Água</ThemedText>
+    <ScrollView contentContainerStyle={styles.container}>
+      <ThemedText type="title" style={styles.title}>
+        Monitoramento Recente da Caixa d'Água
+      </ThemedText>
 
       <ThemedView style={styles.chartContainer}>
         <ThemedText style={styles.chartTitle}>Nível da Água</ThemedText>
         <LineChart
           data={{
-            labels: formattedTimestamps,
-            datasets: [{ data: levelData }],
+            labels: [''],
+            datasets: [{ data: [latestData.level] }],
           }}
-          width={320}
+          width={screenWidth - 80}
           height={220}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            color: (opacity = 1) => `rgba(0, 102, 204, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
-              borderRadius: 16,
-            },
-          }}
+          yAxisSuffix="%"
+          chartConfig={chartConfig}
           style={styles.chart}
         />
       </ThemedView>
 
       <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>Volume Atual</ThemedText>
-        <BarChart
-          data={{
-            labels: ['Volume'],
-            datasets: [
-              {
-                data: [volumeData[volumeData.length - 1], data[0].totalVolume],
-              },
-            ],
-          }}
-          width={320}
-          height={220}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            color: (opacity = 1) => `rgba(255, 99, 132, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
-              borderRadius: 16,
-            },
-          }}
-          style={styles.chart}
-        />
-      </ThemedView>
-
-      <ThemedView style={styles.chartContainer}>
-        <ThemedText style={styles.chartTitle}>Temperatura</ThemedText>
+        <ThemedText style={styles.chartTitle}>Volume da Água</ThemedText>
         <PieChart
           data={[
-            { name: 'Temperatura', value: temperatureData[temperatureData.length - 1], color: '#ffcc00', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-            { name: 'Outros', value: 100 - temperatureData[temperatureData.length - 1], color: '#f1f1f1', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+            { name: 'Volume Atual', population: latestData.volume, color: '#0077be', legendFontColor: '#0077be', legendFontSize: 15 },
+            { name: 'Capacidade Livre', population: latestData.totalVolume - latestData.volume, color: '#add8e6', legendFontColor: '#add8e6', legendFontSize: 15 },
           ]}
-          width={320}
+          width={screenWidth - 80}
           height={220}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            color: (opacity = 1) => `rgba(0, 153, 51, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
-              borderRadius: 16,
-            },
+          chartConfig={chartConfig}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute
+          style={styles.chart}
+        />
+      </ThemedView>
+
+      <ThemedView style={styles.chartContainer}>
+        <ThemedText style={styles.chartTitle}>Temperatura da Água</ThemedText>
+        <BarChart
+          data={{
+            labels: [''],
+            datasets: [{ data: [latestData.temperature] }],
           }}
+          width={screenWidth - 80}
+          height={220}
+          yAxisSuffix="°C"
+          chartConfig={chartConfig}
           style={styles.chart}
         />
       </ThemedView>
@@ -143,47 +108,63 @@ export default function HomeScreen() {
         <ThemedText style={styles.chartTitle}>Pureza da Água</ThemedText>
         <LineChart
           data={{
-            labels: formattedTimestamps,
-            datasets: [{ data: purityData }],
+            labels: [''],
+            datasets: [{ data: [latestData.purity] }],
           }}
-          width={320}
+          width={screenWidth - 80}
           height={220}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            color: (opacity = 1) => `rgba(255, 165, 0, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            style: {
-              borderRadius: 16,
-            },
-          }}
+          yAxisSuffix="%"
+          chartConfig={chartConfig}
           style={styles.chart}
         />
       </ThemedView>
-    </ThemedView>
+    </ScrollView>
   );
 }
 
+const chartConfig = {
+  backgroundGradientFrom: '#e0f7fa',
+  backgroundGradientTo: '#e0f7fa',
+  color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  barPercentage: 0.5,
+};
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 16,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    backgroundColor: '#e0f7fa',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  chartContainer: {
+  title: {
+    fontSize: 24,
+    color: '#0077be',
+    textAlign: 'center',
     marginBottom: 20,
   },
+  chartContainer: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
   chartTitle: {
-    marginVertical: 10,
     fontSize: 18,
+    marginBottom: 10,
+    color: '#0077be',
+    textAlign: 'center',
   },
   chart: {
-    marginVertical: 8,
     borderRadius: 16,
   },
 });
